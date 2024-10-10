@@ -11,6 +11,7 @@
  *******************************************************************************/
 
 /******************************************************************************/
+#include "HAL.h"
 #include "CONFIG.h"
 #include "RF_PHY.h"
 
@@ -114,7 +115,7 @@ uint16_t RF_ProcessEvent(uint8_t task_id, uint16_t events)
     }
     if(events & SBP_RF_START_DEVICE_EVT)
     {
-        tmos_start_task(taskID, SBP_RF_PERIODIC_EVT, 1000);
+        tmos_start_task(taskID, SBP_RF_PERIODIC_EVT, 3000);
         return events ^ SBP_RF_START_DEVICE_EVT;
     }
     if(events & SBP_RF_PERIODIC_EVT)
@@ -125,8 +126,11 @@ uint16_t RF_ProcessEvent(uint8_t task_id, uint16_t events)
         {
             RF_Wait_Tx_End();
         }
-        GPIOA_InverseBits(GPIO_Pin_8);
-        tmos_start_task(taskID, SBP_RF_PERIODIC_EVT, 1000);
+        HAL_Init();
+        GPIOA_ResetBits(GPIO_Pin_8);
+        CH59x_LowPower(MS_TO_RTC(100));
+        GPIOA_SetBits(GPIO_Pin_8);
+        tmos_start_task(taskID, SBP_RF_PERIODIC_EVT, 3000);
         return events ^ SBP_RF_PERIODIC_EVT;
     }
     if(events & SBP_RF_RF_RX_EVT)
@@ -141,13 +145,6 @@ uint16_t RF_ProcessEvent(uint8_t task_id, uint16_t events)
     return 0;
 }
 
-/*********************************************************************
- * @fn      RF_Init
- *
- * @brief   RF ≥ı ºªØ
- *
- * @return  none
- */
 void RF_Init(void)
 {
     uint8_t    state;
@@ -172,7 +169,7 @@ void RF_Init(void)
 #endif
 #ifdef TX_MODE
     { // TX mode
-        tmos_set_event( taskID , SBP_RF_PERIODIC_EVT );
+        tmos_set_event( taskID , SBP_RF_START_DEVICE_EVT );
     }
 #endif
 }

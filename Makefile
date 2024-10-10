@@ -3,8 +3,7 @@
 # Prefix for older riscv gcc is  risv-none-embed
 # Prefix for newer riscv gcc is  risv-none-elf
 # TOOLCHAIN_PREFIX := riscv-none-embed
-TOOLCHAIN_PREFIX := riscv-none-elf
-
+TOOLCHAIN_PREFIX := ../MRS_Toolchain_Linux_x64_V1.92/RISC-V_Embedded_GCC12/bin/riscv-none-elf
 
 
 APP_C_SRCS += \
@@ -147,7 +146,6 @@ obj/%.o: ./%.c
 	@ mkdir --parents $(dir $@)
 	@ ${TOOLCHAIN_PREFIX}-gcc \
 	    $(CFLAGS_COMMON) \
-	    -DDEBUG=1 \
 	    -I"src/include" \
 	    -I"sdk/StdPeriphDriver/inc" \
 	    -I"sdk/RVMSIS" \
@@ -172,6 +170,9 @@ obj/%.o: ./%.S
 	    -MT"$(@)" \
 	    -c \
 	    -o "$@" "$<"
+
+f: clean all
+	chprog main.bin
 
 flash: 
 	chprog main.bin

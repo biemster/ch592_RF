@@ -70,8 +70,6 @@ int main(void)
     HAL_Init();
     RF_RoleInit();
     RF_Init();
-    GPIOA_ModeCfg(GPIO_Pin_8, GPIO_ModeOut_PP_5mA);
-    // LowPower_Sleep(RB_PWR_RAM2K | RB_PWR_CORE | RB_PWR_EXTEND | RB_PWR_RAM24K);
     Main_Circulation();
 }
 
