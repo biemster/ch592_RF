@@ -101,6 +101,7 @@ clean:
 	-rm $(MAKEFILE_DEPS)
 	-rm $(SECONDARY_FLASH)
 	-rm $(SECONDARY_LIST)
+	-rm $(SECONDARY_BIN)
 	-rm main.elf
 	-rm main.map
 	-rm -r ./obj

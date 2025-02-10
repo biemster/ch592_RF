@@ -21,6 +21,7 @@
 
 // #define RX_MODE
 #define TX_MODE
+#define TX_INTERVAL 300
 
 uint8_t taskID;
 uint8_t TX_DATA[] = {1, 2, 3, 42, 3, 2 ,1};
@@ -115,7 +116,7 @@ uint16_t RF_ProcessEvent(uint8_t task_id, uint16_t events)
     }
     if(events & SBP_RF_START_DEVICE_EVT)
     {
-        tmos_start_task(taskID, SBP_RF_PERIODIC_EVT, 3000);
+        tmos_start_task(taskID, SBP_RF_PERIODIC_EVT, TX_INTERVAL);
         return events ^ SBP_RF_START_DEVICE_EVT;
     }
     if(events & SBP_RF_PERIODIC_EVT)
@@ -130,7 +131,7 @@ uint16_t RF_ProcessEvent(uint8_t task_id, uint16_t events)
         GPIOA_ResetBits(GPIO_Pin_8);
         CH59x_LowPower(MS_TO_RTC(100));
         GPIOA_SetBits(GPIO_Pin_8);
-        tmos_start_task(taskID, SBP_RF_PERIODIC_EVT, 3000);
+        tmos_start_task(taskID, SBP_RF_PERIODIC_EVT, TX_INTERVAL);
         return events ^ SBP_RF_PERIODIC_EVT;
     }
     if(events & SBP_RF_RF_RX_EVT)

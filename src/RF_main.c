@@ -66,6 +66,7 @@ int main(void)
 #endif
     PRINT("start.\n\r");
     PRINT("%s\n\r", VER_LIB);
+    GPIOA_ModeCfg(GPIO_Pin_8, GPIO_ModeOut_PP_5mA);
     CH59x_BLEInit();
     HAL_Init();
     RF_RoleInit();
