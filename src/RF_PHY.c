@@ -21,7 +21,7 @@
 
 // #define RX_MODE
 #define TX_MODE
-#define TX_INTERVAL 300
+#define TX_INTERVAL 1000
 
 uint8_t taskID;
 uint8_t TX_DATA[] = {1, 2, 3, 42, 3, 2 ,1};
@@ -70,13 +70,15 @@ void RF_2G4StatusCallBack(uint8_t sta, uint8_t crc, uint8_t *rxBuf)
                 uint8_t i;
 
                 PRINT("rx recv, rssi: %d\r\n", (int8_t)rxBuf[0]);
-                PRINT("len:%d-", rxBuf[1]);
+                PRINT("(len=%d):", rxBuf[1]);
                 
                 for (i = 0; i < rxBuf[1]; i++) {
-                    PRINT("%x ", rxBuf[i + 2]);
+                    PRINT(" %x", rxBuf[i + 2]);
                 }
                 PRINT("\r\n");
-                GPIOA_InverseBits(GPIO_Pin_8);
+                if(tmos_memcmp(rxBuf +2, TX_DATA, sizeof(TX_DATA))) {
+                    GPIOA_InverseBits(GPIO_Pin_8);
+                }
             } else {
                 if (crc & (1<<0)) {
                     PRINT("crc error\r\n");
@@ -138,7 +140,6 @@ uint16_t RF_ProcessEvent(uint8_t task_id, uint16_t events)
     {
         uint8_t state;
         RF_Shut();
-        TX_DATA[0]++;
         state = RF_Rx(TX_DATA, sizeof(TX_DATA), 0xFF, 0xFF);
         PRINT("RX mode.state = %x\r\n", state);
         return events ^ SBP_RF_RF_RX_EVT;
@@ -153,7 +154,7 @@ void RF_Init(void)
 
     tmos_memset(&rf_Config, 0, sizeof(rfConfig_t));
     taskID = TMOS_ProcessEventRegister(RF_ProcessEvent);
-    rf_Config.accessAddress = 0x71764129;
+    rf_Config.accessAddress = 0x8E89BED6; //0x71764129;
     rf_Config.CRCInit = 0x555555;
     rf_Config.Channel = 39;
     rf_Config.LLEMode = LLE_MODE_BASIC;
