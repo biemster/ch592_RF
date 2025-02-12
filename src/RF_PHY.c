@@ -24,7 +24,13 @@
 #define TX_INTERVAL 1000
 
 uint8_t taskID;
-uint8_t TX_DATA[] = {1, 2, 3, 42, 3, 2 ,1};
+// uint8_t TX_DATA[] = {1, 2, 3, 42, 3, 2 ,1};
+uint8_t TX_DATA[] = {0x66, 0x55, 0x44, 0x33, 0x22, 0xd1, // MAC (reversed)
+                    0x1e, 0xff, 0x4c, 0x00, 0x12, 0x19, 0x00, // Apple FindMy stuff
+                    0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xef, 0xfe, 0xdd,0xcc, // key
+                    0xbb, 0xaa, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, // more key
+                    0x00, 0x00}; // status byte and one more
+rfConfig_t rf_Config;
 
 volatile uint8_t tx_end_flag = 0;
 
@@ -123,18 +129,30 @@ uint16_t RF_ProcessEvent(uint8_t task_id, uint16_t events)
     }
     if(events & SBP_RF_PERIODIC_EVT)
     {
+        uint16_t ret = 0;
+        RF_Config(&rf_Config);
         RF_Shut();
         tx_end_flag = FALSE;
+
         if(!RF_Tx(TX_DATA, sizeof(TX_DATA), 0xFF, 0xFF))
         {
             RF_Wait_Tx_End();
         }
-        HAL_Init();
-        GPIOA_ResetBits(GPIO_Pin_8);
-        CH59x_LowPower(MS_TO_RTC(100));
-        GPIOA_SetBits(GPIO_Pin_8);
-        tmos_start_task(taskID, SBP_RF_PERIODIC_EVT, TX_INTERVAL);
-        return events ^ SBP_RF_PERIODIC_EVT;
+
+        if(rf_Config.Channel == 37 || rf_Config.Channel == 38) {
+            rf_Config.Channel++;
+            ret = events;
+        }
+        else {
+            HAL_Init();
+            GPIOA_ResetBits(GPIO_Pin_8);
+            CH59x_LowPower(MS_TO_RTC(100));
+            GPIOA_SetBits(GPIO_Pin_8);
+            tmos_start_task(taskID, SBP_RF_PERIODIC_EVT, TX_INTERVAL);
+            rf_Config.Channel = 37;
+            ret = events ^ SBP_RF_PERIODIC_EVT;
+        }
+        return ret;
     }
     if(events & SBP_RF_RF_RX_EVT)
     {
@@ -150,13 +168,12 @@ uint16_t RF_ProcessEvent(uint8_t task_id, uint16_t events)
 void RF_Init(void)
 {
     uint8_t    state;
-    rfConfig_t rf_Config;
 
     tmos_memset(&rf_Config, 0, sizeof(rfConfig_t));
     taskID = TMOS_ProcessEventRegister(RF_ProcessEvent);
-    rf_Config.accessAddress = 0x8E89BED6; //0x71764129;
+    rf_Config.accessAddress = 0x8E89BED6;
     rf_Config.CRCInit = 0x555555;
-    rf_Config.Channel = 39;
+    rf_Config.Channel = 37;
     rf_Config.LLEMode = LLE_MODE_BASIC;
     rf_Config.rfStatusCB = RF_2G4StatusCallBack;
     rf_Config.RxMaxlen = 251;

@@ -147,6 +147,7 @@ obj/%.o: ./%.c
 	@ mkdir --parents $(dir $@)
 	@ ${TOOLCHAIN_PREFIX}-gcc \
 	    $(CFLAGS_COMMON) \
+	    -DDEBUG \
 	    -I"src/include" \
 	    -I"sdk/StdPeriphDriver/inc" \
 	    -I"sdk/RVMSIS" \
