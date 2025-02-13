@@ -21,7 +21,7 @@
 
 // #define RX_MODE
 #define TX_MODE
-#define TX_INTERVAL 1000
+#define TX_INTERVAL 1000 // * 0.625 ms
 
 uint8_t taskID;
 // uint8_t TX_DATA[] = {1, 2, 3, 42, 3, 2 ,1};
@@ -31,6 +31,7 @@ uint8_t TX_DATA[] = {0x66, 0x55, 0x44, 0x33, 0x22, 0xd1, // MAC (reversed)
                     0xbb, 0xaa, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, // more key
                     0x00, 0x00}; // status byte and one more
 rfConfig_t rf_Config;
+uint8_t pktTxType = 0x02;
 
 volatile uint8_t tx_end_flag = 0;
 
@@ -134,7 +135,7 @@ uint16_t RF_ProcessEvent(uint8_t task_id, uint16_t events)
         RF_Shut();
         tx_end_flag = FALSE;
 
-        if(!RF_Tx(TX_DATA, sizeof(TX_DATA), 0xFF, 0xFF))
+        if(!RF_Tx(TX_DATA, sizeof(TX_DATA), pktTxType, 0xFF))
         {
             RF_Wait_Tx_End();
         }
@@ -146,7 +147,7 @@ uint16_t RF_ProcessEvent(uint8_t task_id, uint16_t events)
         else {
             HAL_Init();
             GPIOA_ResetBits(GPIO_Pin_8);
-            CH59x_LowPower(MS_TO_RTC(100));
+            CH59x_LowPower(MS_TO_RTC(30));
             GPIOA_SetBits(GPIO_Pin_8);
             tmos_start_task(taskID, SBP_RF_PERIODIC_EVT, TX_INTERVAL);
             rf_Config.Channel = 37;
@@ -192,5 +193,3 @@ void RF_Init(void)
     }
 #endif
 }
-
-/******************************** endfile @ main ******************************/
